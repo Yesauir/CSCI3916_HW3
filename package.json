@@ -4,6 +4,7 @@
   "description": "week7a",
   "main": "server.js",
   "scripts": {
+    "start": "node index.js",
     "test": "mocha --timeout 10000 --exit"
   },
   "author": "Shawn McCarthy",
