@@ -107,8 +107,8 @@ router.route('/movies')
         console.log(req.body);
 
         if (!req.body.title || !req.body.releaseYear || !req.body.genre) {
-            console.log("Error. Title, releaseYear or genre not found!");
-            res.json({success: false, message: "Error. Title, release year or genre not found!"});
+            console.log("Error. Title, releaseYear, genre, and actors may not have been found!");
+            res.json({success: false, message: "Error. Title, releaseYear, genre, and actors may not have been found!"});
 
         }
 
@@ -119,8 +119,6 @@ router.route('/movies')
             res.json({success: false, message: "Error. Each movie requires 3 actors!"});
         }
 
-        //this is a change.
-
         else{
             var movie = new Movie();
             movie.title = req.body.title;
@@ -130,10 +128,10 @@ router.route('/movies')
 
             movie.save(function (err) {
                 if (err) {
-                    console.log("Error! Movie already exists. weeoo weeoo.");
-                    res.json({success: false, message: "Error! Movie already exists. weeoo weeoo."})
+                    console.log("Error! Movie already exists.");
+                    res.json({success: false, message: "Error! Movie already exists."})
                 } else {
-                    res.json({success: true, message: "New movie created!!"});
+                    res.json({success: true, message: "New movie has been added!!"});
                 }
 
 
@@ -146,12 +144,12 @@ router.route('/movies')
     .get(authJwtController.isAuthenticated, function (req, res){
         Movie.find(function(err, movies){
             if(err){
-                console.log("There was an error getting movie :(");
-                res.json({success: false, message :"There was an error getting movie :("})
+                console.log("There was an error getting a movie :(");
+                res.json({success: false, message :"There was an error getting the movie :("})
             }
 
             else{
-                console.log("You got a movieeeeee");
+                console.log("Movie has been found and does exist");
                 res.json(movies);
             }
         });
