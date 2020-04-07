@@ -5,8 +5,23 @@ var bcrypt = require('bcrypt-nodejs');
 //inspired by Users.js
 mongoose.Promise = global.Promise;
 
-mongoose.connect(process.env.DB, { useNewUrlParser: true } );
-mongoose.set('useCreateIndex', true);
+// //TODO: Use This when debugging
+// let envPath = './.env';
+// require('dotenv').config({path:envPath});
+
+//mongoose.connect(process.env.DB, { useNewUrlParser: true } );
+//mongoose.set('useCreateIndex', true);
+mongoose.connect(process.env.DB,
+    {
+        useNewUrlParser: true,
+        useFindAndModify: false,
+        useCreateIndex: true,
+        useUnifiedTopology: true})
+    .then(() => console.log('Movies Database Connected!'))
+    .catch(err => {
+        console.log(`Movies Database Connection Error: ${err.message}`);
+    });
+
 
 // Movie schema
 var MovieSchema = new Schema({

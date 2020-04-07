@@ -8,7 +8,7 @@ var cors = require('cors');
 var Movie =require('./Movies');
 
 var app = express();
-module.exports = app; // for testing
+//module.exports = app; // for testing
 app.use(cors())
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -17,17 +17,17 @@ app.use(passport.initialize());
 
 var router = express.Router();
 
-router.route('/postjwt')
-    .post(authJwtController.isAuthenticated, function (req, res) {
-            console.log(req.body);
-            res = res.status(200);
-            if (req.get('Content-Type')) {
-                console.log("Content-Type: " + req.get('Content-Type'));
-                res = res.type(req.get('Content-Type'));
-            }
-            res.send(req.body);
-        }
-    );
+// router.route('/postjwt')
+//     .post(authJwtController.isAuthenticated, function (req, res) {
+//             console.log(req.body);
+//             res = res.status(200);
+//             if (req.get('Content-Type')) {
+//                 console.log("Content-Type: " + req.get('Content-Type'));
+//                 res = res.type(req.get('Content-Type'));
+//             }
+//             res.send(req.body);
+//         }
+//     );
 
 router.route('/users/:userId')
     .get(authJwtController.isAuthenticated, function (req, res) {
@@ -83,21 +83,24 @@ router.post('/signin', function(req, res) {
     User.findOne({ username: userNew.username }).select('name username password').exec(function(err, user) {
         if (err) res.send(err);
 
-        user.comparePassword(userNew.password, function(isMatch){
-            if (isMatch) {
-                var userToken = {id: user._id, username: user.username};
-                var token = jwt.sign(userToken, process.env.SECRET_KEY);
-                res.json({success: true,username:user.username, token: 'JWT ' + token});
-            }
-            else {
-                res.status(401).send({success: false, message: 'Authentication failed.'});
-            }
-        });
+        if(!user) {
+            res.status(400).send("NO SUCH USER FOUND")
+        }
+        else {
+            user.comparePassword(userNew.password, function (isMatch) {
+                if (isMatch) {
+                    var userToken = {id: user._id, username: user.username};
+                    var token = jwt.sign(userToken, process.env.SECRET_KEY);
+                    res.json({success: true, username: user.username, token: 'JWT ' + token});
+                } else {
+                    res.status(401).send({success: false, message: 'Authentication failed.'});
+                }
+            });
+        }
 
 
     });
 });
-
 
 router.route('/movies')
     .post(authJwtController.isAuthenticated, function (req, res) {
