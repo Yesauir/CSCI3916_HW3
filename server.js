@@ -103,115 +103,97 @@ router.post('/signin', function(req, res) {
 });
 
 router.route('/movies')
-    .get(authJwtController.isAuthenticated, function (req, res) {
-        //output the request to server console
-        console.log("\n=====GET REQUEST=====");
-        console.log(req.body);
-
-        Movie.find(function (err, movie) {
-            if (err) {
-                res.status(500).send(err);
-            } else {
-                res.status(200).json(movie);
-            }
-        })
-    })
     .post(authJwtController.isAuthenticated, function (req, res) {
-
-        //output the request to server console
-        console.log("\n=====POST REQUEST=====");
         console.log(req.body);
 
-        if (!req.body.title || !req.body.yearReleased || !req.body.genre || !req.body.actors) {
-            res.status(400).json({
-                success: false,
-                message: 'Please pass complete movie details, including title, yearReleased, genre, and at least one actor (including name and character).'
-            });
-        } else {
+        if (!req.body.title || !req.body.releaseYear || !req.body.genre) {
+            console.log("Error. Title, releaseYear or genre not found!");
+            res.json({success: false, message: "Error. Title, release year or genre not found!"});
+
+        }
+
+        //var howManyActors = JSON.parse(req);
+
+        else if (!req.body.actors[2]) {
+            console.log("Error. Each movie requires 3 actors!");
+            res.json({success: false, message: "Error. Each movie requires 3 actors!"});
+        }
+
+        //this is a change.
+
+        else{
             var movie = new Movie();
             movie.title = req.body.title;
-            movie.yearReleased = req.body.yearReleased;
             movie.genre = req.body.genre;
+            movie.releaseYear = req.body.releaseYear;
             movie.actors = req.body.actors;
-            // save the movie
+
             movie.save(function (err) {
                 if (err) {
-                    // duplicate entry
-                    if (err.code === 11000)
-                        return res.status(400).json({success: false, message: 'A movie with that title already exists.'});
-                    else
-                        return res.status(500).send(err);
+                    console.log("Error! Movie already exists. weeoo weeoo.");
+                    res.json({success: false, message: "Error! Movie already exists. weeoo weeoo."})
+                } else {
+                    res.json({success: true, message: "New movie created!!"});
                 }
 
-                res.status(200).json({success: true, message: 'Movie created!'});
+
             });
         }
+
+
     })
-    .put(authJwtController.isAuthenticated, function (req, res) {
-        //output the request to server console
-        console.log("\n=====PUT REQUEST=====");
-        console.log(req.body);
 
-        Movie.findByIdAndUpdate(
-            // the id of the item to find
-            req.body._id,
-
-            // the change to be made. Mongoose will smartly combine your existing
-            // document with this change, which allows for partial updates too
-            req.body,
-
-            // an option that asks mongoose to return the updated version
-            // of the document instead of the pre-updated one.
-            {new: true},
-
-            // the callback function
-            (err, movie) => {
-                if(!movie) {
-                    return res.status(400).json({ success: false, message: 'Failed to update movie with provided id: No such movie found'});
-                }
-
-                // Handle any possible database errors
-                if (err)
-                    return res.status(500).send(err);
-                return res.status(200).json({success: true, message: 'Movie updated!'});
-            })
-    })
-    .delete(authJwtController.isAuthenticated, function (req, res) {
-        //output the request to server console
-        console.log("\n=====DELETE REQUEST WITH ID=====");
-        console.log(req.body);
-
-        Movie.findByIdAndDelete(req.body._id, (err, movie) => {
-            if(!movie) {
-                return res.status(400).json({success: false, message: 'Failed to delete movie with provided id: No such movie found'})
+    .get(authJwtController.isAuthenticated, function (req, res){
+        Movie.find(function(err, movies){
+            if(err){
+                console.log("There was an error getting movie :(");
+                res.json({success: false, message :"There was an error getting movie :("})
             }
 
-            if (err)
-                return res.status(500).send(err);
-            return res.status(200).json({success: true, message: 'Movie deleted.'});
-        })
-    });
+            else{
+                console.log("You got a movieeeeee");
+                res.json(movies);
+            }
+        });
+    })
 
-router.route('/movies/:id')
-    .get(authJwtController.isAuthenticated, function (req, res) {
-        //output the request to server console
-        console.log("\n=====GET REQUEST WITH ID=====");
+    .put(authJwtController.isAuthenticated, function (req, res) {
         console.log(req.body);
+        if (!req.body.title || !req.body.att || !req.body.update) {
+            console.log("Error. One or more field is missing from update");
+            return res.error;
+        }
 
-        var id = req.params.id;
-        Movie.findById(id, function (err, movie) {
-            if(!movie)
-                return res.status(400).json({ success: false, message: 'Failed to find movie with provided id: No such movie found'});
+        var update = req.body.att;
+        var objUpdate = {};
+        objUpdate[update] = req.body.update;
 
+        Movie.findOneAndUpdate({title: req.body.title}, objUpdate, function (err, status) {
+            if (err) {
+                res.json({error: err});
+            } else {
+                res.json({success: true, message: 'Movie has been updated successfully!'});
+            }
+
+        });
+
+    })
+
+
+    .delete(authJwtController.isAuthenticated, function (req, res){
+        Movie.findOneAndDelete({title: req.body.title}, function (err, movie) {
             if (err)
-                res.status(500).send(err);
-
-            var movieJSON = JSON.stringify(movie);
-            // return that movie
-            res.status(200).json(movie);
+            {
+                res.status(400).json({success: false, message: "Error!"})
+            }
+            else if(movie == null)
+            {
+                res.json({success: false, message : "Movie not found"})
+            }
+            else{
+                res.json({success: true, message :"Movie has been deleted!"})}
         });
     });
-
 
 app.use('/', router);
 app.listen(process.env.PORT || 8080);
