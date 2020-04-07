@@ -76,7 +76,7 @@ router.post('/signup', function(req, res) {
 
 router.post('/signin', function(req, res) {
     var userNew = new User();
-    //userNew.name = req.body.name;
+    userNew.name = req.body.name;
     userNew.username = req.body.username;
     userNew.password = req.body.password;
 
@@ -87,7 +87,7 @@ router.post('/signin', function(req, res) {
             if (isMatch) {
                 var userToken = {id: user._id, username: user.username};
                 var token = jwt.sign(userToken, process.env.SECRET_KEY);
-                res.json({success: true, token: 'JWT ' + token});
+                res.json({success: true,username:user.username, token: 'JWT ' + token});
             }
             else {
                 res.status(401).send({success: false, message: 'Authentication failed.'});
